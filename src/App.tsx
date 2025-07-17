@@ -16,6 +16,7 @@ import BlogManager from "./pages/admin/BlogManager";
 import BlogEditor from "./pages/admin/BlogEditor";
 import WorksManager from "./pages/admin/WorksManager";
 import ContactsManager from "./pages/admin/ContactsManager";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/admin/blog/new" element={<BlogEditor />} />
           <Route path="/admin/works" element={<WorksManager />} />
           <Route path="/admin/contacts" element={<ContactsManager />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

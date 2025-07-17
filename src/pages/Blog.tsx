@@ -102,14 +102,28 @@ const Blog = () => {
         {/* Hero Section */}
         <section className="py-20 gradient-hero">
           <div className="container mx-auto px-4">
-            <div className="text-center space-y-6">
-              <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">
-                Blog
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Thoughts, insights, and creative expressions on literature, society, mental health, 
-                and the human experience. Join me on this journey of exploration through words.
-              </p>
+            <div className="text-center space-y-8">
+              <div className="space-y-6">
+                <Badge variant="secondary" className="mb-4">
+                  Literary Insights & Social Commentary
+                </Badge>
+                <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">
+                  Blog & Writings
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                  Thoughts, insights, and creative expressions on literature, society, mental health, 
+                  and the human experience. Join me on this journey of exploration through words.
+                </p>
+              </div>
+              
+              {/* Topic Tags */}
+              <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
+                {["Mental Health", "African Literature", "Social Work", "Poetry", "Gender Studies", "Cultural Analysis", "Literary Criticism", "Family Dynamics"].map((topic) => (
+                  <Badge key={topic} variant="outline" className="bg-background/50 backdrop-blur-sm">
+                    {topic}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         </section>

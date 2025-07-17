@@ -116,15 +116,40 @@ const Works = () => {
         {/* Hero Section */}
         <section className="py-20 gradient-hero">
           <div className="container mx-auto px-4">
-            <div className="text-center space-y-6">
-              <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">
-                My Literary Works
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                A comprehensive collection of my writings spanning fiction, poetry, academic research, 
-                and literary criticism. Each piece reflects my journey as a writer exploring the 
-                depths of human experience and social understanding.
-              </p>
+            <div className="text-center space-y-8">
+              <div className="space-y-6">
+                <Badge variant="secondary" className="mb-4">
+                  Digital Literary Portfolio
+                </Badge>
+                <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">
+                  My Literary Works
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                  A comprehensive collection of my writings spanning fiction, poetry, academic research, 
+                  and literary criticism. Each piece reflects my journey as a writer exploring the 
+                  depths of human experience and social understanding.
+                </p>
+              </div>
+              
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
+                <div className="text-center space-y-2">
+                  <div className="text-2xl md:text-3xl font-bold text-primary">15+</div>
+                  <div className="text-sm text-muted-foreground">Published Works</div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-2xl md:text-3xl font-bold text-primary">5</div>
+                  <div className="text-sm text-muted-foreground">Genres Covered</div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-2xl md:text-3xl font-bold text-primary">8</div>
+                  <div className="text-sm text-muted-foreground">Research Areas</div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-2xl md:text-3xl font-bold text-primary">3</div>
+                  <div className="text-sm text-muted-foreground">Academic Degrees</div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

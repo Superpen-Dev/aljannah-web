@@ -10,11 +10,18 @@ import {
   Calendar,
   Eye,
   Edit,
-  Plus
+  Plus,
+  Activity,
+  Clock,
+  Target,
+  BarChart3,
+  Download,
+  Share2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 const AdminDashboard = () => {
   // Mock data - will be replaced with Supabase
@@ -22,7 +29,17 @@ const AdminDashboard = () => {
     totalPosts: 6,
     totalWorks: 12,
     totalContacts: 23,
-    monthlyViews: 1247
+    monthlyViews: 1247,
+    draftPosts: 3,
+    publishedWorks: 9,
+    totalDownloads: 456,
+    avgReadTime: "4.2 min"
+  };
+
+  const monthlyProgress = {
+    posts: 75, // 3 out of 4 planned posts
+    works: 60, // 2 out of 3 planned works
+    engagement: 85 // Engagement target
   };
 
   const recentPosts = [
@@ -72,49 +89,144 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Main Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="literary-shadow">
+          <Card className="literary-shadow border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
+              <FileText className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts}</div>
-              <p className="text-xs text-muted-foreground">+2 from last month</p>
+              <div className="text-3xl font-bold text-foreground">{stats.totalPosts}</div>
+              <div className="flex items-center mt-2">
+                <Badge variant="secondary" className="text-xs mr-2">
+                  {stats.draftPosts} drafts
+                </Badge>
+                <p className="text-xs text-muted-foreground">+2 this month</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="literary-shadow border-l-4 border-l-accent">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Literary Works</CardTitle>
+              <BookOpen className="h-5 w-5 text-accent" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.totalWorks}</div>
+              <div className="flex items-center mt-2">
+                <Badge variant="outline" className="text-xs mr-2">
+                  {stats.publishedWorks} published
+                </Badge>
+                <p className="text-xs text-muted-foreground">+1 this month</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="literary-shadow border-l-4 border-l-secondary">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Engagement</CardTitle>
+              <Activity className="h-5 w-5 text-secondary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.monthlyViews}</div>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+                <p className="text-xs text-green-500">+15% this month</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="literary-shadow border-l-4 border-l-muted-foreground">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Downloads</CardTitle>
+              <Download className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.totalDownloads}</div>
+              <div className="flex items-center mt-2">
+                <p className="text-xs text-muted-foreground">Avg. {stats.avgReadTime} read time</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Progress Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="literary-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Monthly Content Goal
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Blog Posts</span>
+                    <span>{monthlyProgress.posts}%</span>
+                  </div>
+                  <Progress value={monthlyProgress.posts} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>New Works</span>
+                    <span>{monthlyProgress.works}%</span>
+                  </div>
+                  <Progress value={monthlyProgress.works} className="h-2" />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="literary-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Works</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Engagement Metrics
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalWorks}</div>
-              <p className="text-xs text-muted-foreground">+1 from last month</p>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm">Page Views</span>
+                  <span className="text-sm font-medium">1,247</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Unique Visitors</span>
+                  <span className="text-sm font-medium">892</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Bounce Rate</span>
+                  <span className="text-sm font-medium text-green-500">35%</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="literary-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Contact Messages</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Recent Activity
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalContacts}</div>
-              <p className="text-xs text-muted-foreground">+5 this week</p>
-            </CardContent>
-          </Card>
-
-          <Card className="literary-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Views</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.monthlyViews}</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-muted-foreground">5 new messages</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-muted-foreground">2 posts published</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-muted-foreground">1 work uploaded</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

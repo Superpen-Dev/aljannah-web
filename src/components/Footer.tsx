@@ -98,9 +98,15 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center">
           <p className="text-primary-foreground/60 text-sm flex items-center justify-center gap-1">
-            © {currentYear} AlJannah Adedamola Sanni. Made with 
-            <Heart className="h-4 w-4 text-red-400" fill="currentColor" />
-            for the love of literature.
+            © {currentYear} AlJannah Adedamola Sanni. Developed By{" "}
+            <a 
+              href="https://wa.me/2348135416423?text=Hello!%20I%20found%20your%20contact%20through%20AlJannah's%20website%20and%20would%20like%20to%20know%20more%20about%20your%20services%20or%20discuss%20a%20project."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-foreground hover:text-primary-foreground/80 transition-colors underline"
+            >
+              Superpen-Dev
+            </a>
           </p>
         </div>
       </div>
