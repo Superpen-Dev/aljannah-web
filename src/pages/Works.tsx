@@ -2,6 +2,7 @@ import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Search, Filter, Download, ExternalLink, BookOpen, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,9 +175,11 @@ const Works = () => {
                               </a>
                             </Button>
                           ) : (
-                            <Button variant="outline" size="sm">
-                              <FileText className="h-4 w-4 mr-2" />
-                              Read
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to={`/works/${work.id}`}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Read
+                              </Link>
                             </Button>
                           )}
                         </div>

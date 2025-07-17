@@ -102,8 +102,8 @@ const BlogEditor = () => {
           title: "Success",
           description: "Post created successfully"
         });
-      } else {
-        await updatePost(id!, postData);
+      } else if (id && id !== "new") {
+        await updatePost(id, postData);
         toast({
           title: "Success", 
           description: "Post updated successfully"

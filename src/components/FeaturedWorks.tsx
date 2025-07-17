@@ -3,6 +3,7 @@ import { ExternalLink, Download, BookOpen, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 import { usePublishedWorks } from "@/hooks/useLiteraryWorks";
 
 const FeaturedWorks = () => {
@@ -75,9 +76,11 @@ const FeaturedWorks = () => {
                         </a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Read
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/works/${work.id}`}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Read
+                        </Link>
                       </Button>
                     )}
                   </div>
@@ -97,10 +100,10 @@ const FeaturedWorks = () => {
 
         <div className="text-center mt-12">
           <Button asChild variant="elegant" size="lg">
-            <a href="/works">
+            <Link to="/works">
               <BookOpen className="mr-2 h-5 w-5" />
               View All Works
-            </a>
+            </Link>
           </Button>
         </div>
       </div>
