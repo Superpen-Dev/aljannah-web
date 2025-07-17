@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Save, User, Globe, Bell, Shield, FileText, BarChart3, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
