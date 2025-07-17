@@ -2,41 +2,13 @@ import { ExternalLink, Download, BookOpen, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { usePublishedWorks } from "@/hooks/useLiteraryWorks";
 
 const FeaturedWorks = () => {
-  // Mock data - will be replaced with actual data from backend
-  const featuredWorks = [
-    {
-      id: 1,
-      title: "Echoes of the Heart",
-      type: "Fiction",
-      genre: "Romance/Drama",
-      description: "A compelling narrative exploring the complexities of modern relationships and the resilience of the human spirit.",
-      format: "PDF",
-      downloadUrl: "#",
-      topic: "Marriage & Family"
-    },
-    {
-      id: 2,
-      title: "Voices from the Margin",
-      type: "Academic",
-      genre: "Social Work Research",
-      description: "An insightful analysis of marginalized communities and their journey toward social empowerment.",
-      format: "External Link",
-      externalUrl: "#",
-      topic: "Social Sciences"
-    },
-    {
-      id: 3,
-      title: "Silent Strength",
-      type: "Poetry",
-      genre: "Contemporary Poetry",
-      description: "A collection of verses celebrating the quiet resilience of women in African society.",
-      format: "PDF",
-      downloadUrl: "#",
-      topic: "Gender & Identity"
-    }
-  ];
+  const { works, loading } = usePublishedWorks();
+  
+  // Get the latest 3 published works
+  const featuredWorks = works.slice(0, 3);
 
   return (
     <section className="py-20 bg-background">
@@ -50,52 +22,72 @@ const FeaturedWorks = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredWorks.map((work) => (
-            <Card key={work.id} className="literary-shadow hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {work.type}
-                    </Badge>
-                    <CardTitle className="font-heading text-xl">{work.title}</CardTitle>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="text-lg">Loading featured works...</div>
+          </div>
+        ) : featuredWorks.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredWorks.map((work) => (
+              <Card key={work.id} className="literary-shadow hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {work.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                      <CardTitle className="font-heading text-xl">{work.title}</CardTitle>
+                    </div>
+                    <div className="text-primary">
+                      {work.content && work.content.startsWith('http') ? 
+                        <ExternalLink className="h-5 w-5" /> : 
+                        <FileText className="h-5 w-5" />
+                      }
+                    </div>
                   </div>
-                  <div className="text-primary">
-                    {work.format === "PDF" ? <FileText className="h-5 w-5" /> : <ExternalLink className="h-5 w-5" />}
-                  </div>
-                </div>
-                <CardDescription className="text-sm font-medium text-primary">
-                  {work.genre}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {work.description}
-                </p>
+                </CardHeader>
                 
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-xs">
-                    {work.topic}
-                  </Badge>
-                  
-                  {work.format === "PDF" ? (
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
+                <CardContent className="space-y-4">
+                  {work.description && (
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {work.description}
+                    </p>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  
+                  <div className="flex items-center justify-between">
+                    {work.tags && work.tags.length > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {work.tags[0]}
+                      </Badge>
+                    )}
+                    
+                    {work.content && work.content.startsWith('http') ? (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={work.content} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Read
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-heading text-xl font-semibold mb-2">No works published yet</h3>
+            <p className="text-muted-foreground">
+              Check back soon for featured literary works.
+            </p>
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Button asChild variant="elegant" size="lg">

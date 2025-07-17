@@ -19,6 +19,7 @@ import BlogEditor from "./pages/admin/BlogEditor";
 import WorksManager from "./pages/admin/WorksManager";
 import ContactsManager from "./pages/admin/ContactsManager";
 import AdminSettings from "./pages/admin/Settings";
+import WorkEditor from "./pages/admin/WorkEditor";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,8 @@ const App = () => (
             <Route path="/admin/blog/:id/edit" element={<ProtectedRoute><BlogEditor /></ProtectedRoute>} />
             <Route path="/admin/blog/new" element={<ProtectedRoute><BlogEditor /></ProtectedRoute>} />
             <Route path="/admin/works" element={<ProtectedRoute><WorksManager /></ProtectedRoute>} />
+            <Route path="/admin/works/:id/edit" element={<ProtectedRoute><WorkEditor /></ProtectedRoute>} />
+            <Route path="/admin/works/new" element={<ProtectedRoute><WorkEditor /></ProtectedRoute>} />
             <Route path="/admin/contacts" element={<ProtectedRoute><ContactsManager /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
             

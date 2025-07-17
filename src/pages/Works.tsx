@@ -7,101 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePublishedWorks } from "@/hooks/useLiteraryWorks";
 
 const Works = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterGenre, setFilterGenre] = useState("all");
-  const [filterTopic, setFilterTopic] = useState("all");
+  const [filterType, setFilterType] = useState("all");
+  const { works, loading } = usePublishedWorks();
 
-  // Mock data - will be replaced with actual data from backend
-  const works = [
-    {
-      id: 1,
-      title: "Echoes of the Heart",
-      type: "Fiction",
-      genre: "Romance/Drama",
-      topic: "Marriage & Family",
-      description: "A compelling narrative exploring the complexities of modern relationships and the resilience of the human spirit in the face of adversity.",
-      format: "PDF",
-      downloadUrl: "#",
-      publishedDate: "2024-01-15",
-      pages: 245
-    },
-    {
-      id: 2,
-      title: "Voices from the Margin",
-      type: "Academic",
-      genre: "Social Work Research",
-      topic: "Social Sciences",
-      description: "An insightful analysis of marginalized communities and their journey toward social empowerment through community-based interventions.",
-      format: "External Link",
-      externalUrl: "#",
-      publishedDate: "2023-11-20",
-      pages: null
-    },
-    {
-      id: 3,
-      title: "Silent Strength",
-      type: "Poetry",
-      genre: "Contemporary Poetry",
-      topic: "Gender & Identity",
-      description: "A collection of verses celebrating the quiet resilience of women in African society and their untold stories of strength.",
-      format: "PDF",
-      downloadUrl: "#",
-      publishedDate: "2024-02-10",
-      pages: 78
-    },
-    {
-      id: 4,
-      title: "Mental Health in Modern Africa",
-      type: "Article",
-      genre: "Public Health",
-      topic: "Mental Health",
-      description: "A comprehensive examination of mental health challenges and opportunities in contemporary African communities.",
-      format: "External Link",
-      externalUrl: "#",
-      publishedDate: "2023-12-05",
-      pages: null
-    },
-    {
-      id: 5,
-      title: "The Feminist Lens",
-      type: "Literary Criticism",
-      genre: "Critical Essays",
-      topic: "Feminism",
-      description: "Critical essays examining feminist themes in contemporary African literature and their sociocultural implications.",
-      format: "PDF",
-      downloadUrl: "#",
-      publishedDate: "2024-01-30",
-      pages: 156
-    },
-    {
-      id: 6,
-      title: "Threads of Culture",
-      type: "Nonfiction",
-      genre: "Cultural Studies",
-      topic: "Culture",
-      description: "An exploration of how cultural traditions evolve and adapt in modern society while maintaining their essence.",
-      format: "PDF",
-      downloadUrl: "#",
-      publishedDate: "2023-10-15",
-      pages: 198
-    }
-  ];
-
-  const genres = ["all", "Romance/Drama", "Social Work Research", "Contemporary Poetry", "Public Health", "Critical Essays", "Cultural Studies"];
-  const topics = ["all", "Marriage & Family", "Social Sciences", "Gender & Identity", "Mental Health", "Feminism", "Culture"];
+  const types = ["all", "novel", "short_story", "poem", "essay", "article"];
 
   const filteredWorks = works.filter(work => {
     const matchesSearch = work.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         work.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGenre = filterGenre === "all" || work.genre === filterGenre;
-    const matchesTopic = filterTopic === "all" || work.topic === filterTopic;
+                         (work.description && work.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType = filterType === "all" || work.type === filterType;
     
-    return matchesSearch && matchesGenre && matchesTopic;
+    return matchesSearch && matchesType;
   });
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not published';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -134,20 +58,20 @@ const Works = () => {
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
                 <div className="text-center space-y-2">
-                  <div className="text-2xl md:text-3xl font-bold text-primary">15+</div>
+                  <div className="text-2xl md:text-3xl font-bold text-primary">{works.length}</div>
                   <div className="text-sm text-muted-foreground">Published Works</div>
                 </div>
                 <div className="text-center space-y-2">
-                  <div className="text-2xl md:text-3xl font-bold text-primary">5</div>
-                  <div className="text-sm text-muted-foreground">Genres Covered</div>
+                  <div className="text-2xl md:text-3xl font-bold text-primary">{new Set(works.map(w => w.type)).size}</div>
+                  <div className="text-sm text-muted-foreground">Types</div>
                 </div>
                 <div className="text-center space-y-2">
-                  <div className="text-2xl md:text-3xl font-bold text-primary">8</div>
-                  <div className="text-sm text-muted-foreground">Research Areas</div>
+                  <div className="text-2xl md:text-3xl font-bold text-primary">{works.filter(w => w.tags && w.tags.length > 0).length}</div>
+                  <div className="text-sm text-muted-foreground">Tagged Works</div>
                 </div>
                 <div className="text-center space-y-2">
-                  <div className="text-2xl md:text-3xl font-bold text-primary">3</div>
-                  <div className="text-sm text-muted-foreground">Academic Degrees</div>
+                  <div className="text-2xl md:text-3xl font-bold text-primary">{works.filter(w => w.content && w.content.startsWith('http')).length}</div>
+                  <div className="text-sm text-muted-foreground">External Links</div>
                 </div>
               </div>
             </div>
@@ -168,27 +92,14 @@ const Works = () => {
                 />
               </div>
               
-              <Select value={filterGenre} onValueChange={setFilterGenre}>
+              <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by genre" />
+                  <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {genres.map((genre) => (
-                    <SelectItem key={genre} value={genre}>
-                      {genre === "all" ? "All Genres" : genre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={filterTopic} onValueChange={setFilterTopic}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by topic" />
-                </SelectTrigger>
-                <SelectContent>
-                  {topics.map((topic) => (
-                    <SelectItem key={topic} value={topic}>
-                      {topic === "all" ? "All Topics" : topic}
+                  {types.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type === "all" ? "All Types" : type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -198,8 +109,7 @@ const Works = () => {
                 variant="outline" 
                 onClick={() => {
                   setSearchTerm("");
-                  setFilterGenre("all");
-                  setFilterTopic("all");
+                  setFilterType("all");
                 }}
               >
                 <Filter className="h-4 w-4 mr-2" />
@@ -212,62 +122,70 @@ const Works = () => {
         {/* Works Grid */}
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredWorks.map((work) => (
-                <Card key={work.id} className="literary-shadow hover:shadow-lg transition-shadow duration-300">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {work.type}
-                        </Badge>
-                        <CardTitle className="font-heading text-xl">{work.title}</CardTitle>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="text-lg">Loading works...</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredWorks.map((work) => (
+                  <Card key={work.id} className="literary-shadow hover:shadow-lg transition-shadow duration-300">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {work.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </Badge>
+                          <CardTitle className="font-heading text-xl">{work.title}</CardTitle>
+                        </div>
+                        <div className="text-primary">
+                          {work.content && work.content.startsWith('http') ? 
+                            <ExternalLink className="h-5 w-5" /> : 
+                            <FileText className="h-5 w-5" />
+                          }
+                        </div>
                       </div>
-                      <div className="text-primary">
-                        {work.format === "PDF" ? 
-                          <FileText className="h-5 w-5" /> : 
-                          <ExternalLink className="h-5 w-5" />
-                        }
-                      </div>
-                    </div>
-                    <CardDescription className="text-sm font-medium text-primary">
-                      {work.genre}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {work.description}
-                    </p>
+                    </CardHeader>
                     
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Published: {formatDate(work.publishedDate)}</span>
-                        {work.pages && <span>{work.pages} pages</span>}
-                      </div>
+                    <CardContent className="space-y-4">
+                      {work.description && (
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          {work.description}
+                        </p>
+                      )}
                       
-                      <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-xs">
-                          {work.topic}
-                        </Badge>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Published: {formatDate(work.published_at)}</span>
+                        </div>
                         
-                        {work.format === "PDF" ? (
-                          <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        )}
+                        <div className="flex items-center justify-between">
+                          {work.tags && work.tags.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {work.tags[0]}
+                            </Badge>
+                          )}
+                          
+                          {work.content && work.content.startsWith('http') ? (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={work.content} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Read
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {filteredWorks.length === 0 && (
               <div className="text-center py-12">

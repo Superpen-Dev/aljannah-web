@@ -1,45 +1,25 @@
-import { Calendar, ArrowRight, Clock } from "lucide-react";
+import { Calendar, ArrowRight, Clock, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { usePublishedPosts } from "@/hooks/useBlogPosts";
 
 const LatestBlogPosts = () => {
-  // Mock data - will be replaced with actual data from backend
-  const blogPosts = [
-    {
-      id: 1,
-      title: "The Power of Storytelling in Mental Health Advocacy",
-      excerpt: "Exploring how narrative therapy and personal stories can transform our understanding of mental wellness...",
-      category: "Articles",
-      publishedAt: "2024-01-15",
-      readTime: "5 min read",
-      slug: "storytelling-mental-health-advocacy",
-      coverImage: "https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=400&h=250&fit=crop"
-    },
-    {
-      id: 2,
-      title: "African Feminism Through Literary Lens",
-      excerpt: "A critical examination of how contemporary African literature challenges and redefines feminist discourse...",
-      category: "Literary Criticism",
-      publishedAt: "2024-01-10",
-      readTime: "8 min read",
-      slug: "african-feminism-literary-lens",
-      coverImage: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Whispers of Home",
-      excerpt: "A poem about diaspora, belonging, and the eternal search for home in foreign lands...",
-      category: "Poetry",
-      publishedAt: "2024-01-05",
-      readTime: "2 min read",
-      slug: "whispers-of-home",
-      coverImage: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop"
-    }
-  ];
+  const { posts, loading } = usePublishedPosts();
+  
+  // Get the latest 3 published posts
+  const latestPosts = posts.slice(0, 3);
 
-  const formatDate = (dateString: string) => {
+  const calculateReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.split(' ').length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min read`;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not published';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -59,54 +39,74 @@ const LatestBlogPosts = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post) => (
-            <Card key={post.id} className="literary-shadow hover:shadow-lg transition-all duration-300 overflow-hidden group">
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src={post.coverImage}
-                  alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              
-              <CardHeader className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="text-xs">
-                    {post.category}
-                  </Badge>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {post.readTime}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="text-lg">Loading latest posts...</div>
+          </div>
+        ) : latestPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {latestPosts.map((post) => (
+              <Card key={post.id} className="literary-shadow hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                {post.featured_image && (
+                  <div className="aspect-video overflow-hidden">
+                    <img
+                      src={post.featured_image}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                </div>
+                )}
                 
-                <CardTitle className="font-heading text-lg leading-tight group-hover:text-primary transition-colors">
-                  {post.title}
-                </CardTitle>
+                <CardHeader className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    {post.tags && post.tags.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {post.tags[0]}
+                      </Badge>
+                    )}
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {calculateReadTime(post.content)}
+                    </div>
+                  </div>
+                  
+                  <CardTitle className="font-heading text-lg leading-tight group-hover:text-primary transition-colors">
+                    {post.title}
+                  </CardTitle>
+                  
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {formatDate(post.published_at)}
+                  </div>
+                </CardHeader>
                 
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {formatDate(post.publishedAt)}
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {post.excerpt}
-                </p>
-                
-                <Link
-                  to={`/blog/${post.slug}`}
-                  className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                >
-                  Read More
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <CardContent className="space-y-4">
+                  {post.excerpt && (
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {post.excerpt}
+                    </p>
+                  )}
+                  
+                  <Link
+                    to={`/blog/${post.slug}`}
+                    className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Read More
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-heading text-xl font-semibold mb-2">No blog posts yet</h3>
+            <p className="text-muted-foreground">
+              Check back soon for the latest insights and stories.
+            </p>
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Button asChild variant="literary" size="lg">
