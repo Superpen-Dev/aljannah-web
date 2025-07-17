@@ -1,38 +1,54 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("sani@adminaljannah.com");
+  const [password, setPassword] = useState("iamfirdaus");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/admin/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // TODO: Replace with Supabase authentication
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await signIn(email, password);
       
-      // Mock validation
-      if (email === "admin@aljannahsanni.com" && password === "admin123") {
-        // Redirect to admin dashboard
-        window.location.href = "/admin/dashboard";
-      } else {
-        setError("Invalid email or password");
+      if (error) {
+        setError(error.message);
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
       }
-    } catch (err) {
+    } catch (err: any) {
       setError("An error occurred. Please try again.");
+      toast({
+        title: "Login Failed",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -133,7 +149,7 @@ const AdminLogin = () => {
         </Card>
         
         <div className="mt-6 text-center text-xs text-muted-foreground">
-          <p>Demo credentials: admin@aljannahsanni.com / admin123</p>
+          <p>Demo credentials: sani@adminaljannah.com / iamfirdaus</p>
         </div>
       </div>
     </div>

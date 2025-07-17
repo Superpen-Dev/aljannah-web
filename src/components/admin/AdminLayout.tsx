@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -22,7 +23,9 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const location = useLocation();
+  const { signOut, user } = useAuth();
 
   const navigation = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -36,9 +39,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
-  const handleLogout = () => {
-    // TODO: Implement Supabase logout
-    window.location.href = "/admin/login";
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -83,7 +85,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
-                  AlJannah Sanni
+                  {user?.email?.split('@')[0] || 'Admin'}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
                   Admin
