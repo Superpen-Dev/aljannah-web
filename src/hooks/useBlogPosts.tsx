@@ -115,27 +115,27 @@ export const usePublishedPosts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchPublishedPosts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
+
+      if (error) throw error;
+      setPosts((data || []) as BlogPost[]);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPublishedPosts = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('status', 'published')
-          .order('published_at', { ascending: false });
-
-        if (error) throw error;
-        setPosts((data || []) as BlogPost[]);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPublishedPosts();
   }, []);
 
-  return { posts, loading, error };
+  return { posts, loading, error, refetch: fetchPublishedPosts };
 };

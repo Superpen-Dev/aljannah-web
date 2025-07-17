@@ -54,6 +54,7 @@ export const useLiteraryWorks = () => {
         cover_image: workData.cover_image,
         status: workData.status || 'draft',
         tags: workData.tags,
+        published_at: workData.published_at,
       })
       .select()
       .single();
@@ -106,27 +107,27 @@ export const usePublishedWorks = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchPublishedWorks = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('literary_works')
+        .select('*')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
+
+      if (error) throw error;
+      setWorks((data || []) as LiteraryWork[]);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPublishedWorks = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('literary_works')
-          .select('*')
-          .eq('status', 'published')
-          .order('published_at', { ascending: false });
-
-        if (error) throw error;
-        setWorks((data || []) as LiteraryWork[]);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPublishedWorks();
   }, []);
 
-  return { works, loading, error };
+  return { works, loading, error, refetch: fetchPublishedWorks };
 };

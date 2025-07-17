@@ -1,3 +1,4 @@
+import React from "react";
 import { ExternalLink, Download, BookOpen, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { usePublishedWorks } from "@/hooks/useLiteraryWorks";
 
 const FeaturedWorks = () => {
-  const { works, loading } = usePublishedWorks();
+  const { works, loading, refetch } = usePublishedWorks();
+  
+  // Refetch when component mounts to ensure fresh data
+  React.useEffect(() => {
+    refetch();
+  }, [refetch]);
   
   // Get the latest 3 published works
   const featuredWorks = works.slice(0, 3);

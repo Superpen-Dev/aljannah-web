@@ -1,3 +1,4 @@
+import React from "react";
 import { Calendar, ArrowRight, Clock, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,12 @@ import { Link } from "react-router-dom";
 import { usePublishedPosts } from "@/hooks/useBlogPosts";
 
 const LatestBlogPosts = () => {
-  const { posts, loading } = usePublishedPosts();
+  const { posts, loading, refetch } = usePublishedPosts();
+  
+  // Refetch when component mounts to ensure fresh data
+  React.useEffect(() => {
+    refetch();
+  }, [refetch]);
   
   // Get the latest 3 published posts
   const latestPosts = posts.slice(0, 3);

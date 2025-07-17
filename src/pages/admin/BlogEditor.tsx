@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Save, 
   Eye, 
@@ -22,50 +24,40 @@ import { Separator } from "@/components/ui/separator";
 const BlogEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { posts, createPost, updatePost, loading } = useBlogPosts();
   const isNew = id === "new";
 
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    category: "",
     excerpt: "",
     content: "",
-    coverImage: "",
+    featured_image: "",
     tags: "",
-    status: "draft",
-    publishedAt: ""
+    status: "draft" as "draft" | "published" | "archived",
+    published_at: ""
   });
 
   const [saving, setSaving] = useState(false);
 
-  const categories = ["Articles", "Poetry", "Literary Criticism"];
-
   useEffect(() => {
-    if (!isNew) {
-      // TODO: Fetch post data from Supabase
-      // For now, load mock data
-      const mockPost = {
-        title: "The Power of Storytelling in Mental Health Advocacy",
-        slug: "storytelling-mental-health-advocacy",
-        category: "Articles",
-        excerpt: "Exploring how narrative therapy and personal stories can transform our understanding of mental wellness and create pathways to healing...",
-        content: `Mental health advocacy has found one of its most powerful tools in the art of storytelling. Through personal narratives, we break down barriers of stigma and create pathways to understanding and healing.
-
-## The Human Connection
-
-Stories have an unparalleled ability to connect us on a deeply human level. When someone shares their mental health journey, they create a bridge of empathy that statistics and clinical descriptions simply cannot match.
-
-## Breaking Down Stigma
-
-One of the most significant barriers to mental health support is the persistent stigma surrounding mental illness. Personal stories have the power to humanize these experiences.`,
-        coverImage: "https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=800&h=400&fit=crop",
-        tags: "mental health, storytelling, advocacy, therapy",
-        status: "published",
-        publishedAt: "2024-01-15"
-      };
-      setFormData(mockPost);
+    if (!isNew && posts.length > 0) {
+      const post = posts.find(p => p.id === id);
+      if (post) {
+        setFormData({
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt || "",
+          content: post.content,
+          featured_image: post.featured_image || "",
+          tags: post.tags?.join(", ") || "",
+          status: post.status,
+          published_at: post.published_at ? post.published_at.split('T')[0] : ""
+        });
+      }
     }
-  }, [id, isNew]);
+  }, [id, isNew, posts]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -82,23 +74,49 @@ One of the most significant barriers to mental health support is the persistent 
   };
 
   const handleSave = async (status: string = formData.status) => {
+    if (!formData.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Title is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSaving(true);
     
     try {
-      // TODO: Save to Supabase
       const postData = {
-        ...formData,
-        status,
-        publishedAt: status === "published" ? (formData.publishedAt || new Date().toISOString()) : formData.publishedAt
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        featured_image: formData.featured_image,
+        status: status as "draft" | "published" | "archived",
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        published_at: status === "published" ? (formData.published_at ? new Date(formData.published_at).toISOString() : new Date().toISOString()) : null
       };
       
-      console.log("Saving post:", postData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (isNew) {
+        await createPost(postData);
+        toast({
+          title: "Success",
+          description: "Post created successfully"
+        });
+      } else {
+        await updatePost(id!, postData);
+        toast({
+          title: "Success", 
+          description: "Post updated successfully"
+        });
+      }
       
       navigate("/admin/blog");
-    } catch (error) {
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
       console.error("Error saving post:", error);
     } finally {
       setSaving(false);
@@ -185,7 +203,7 @@ One of the most significant barriers to mental health support is the persistent 
                     className="mt-1"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    URL: /blog/{formData.slug || "post-url"}
+                    Auto-generated from title
                   </p>
                 </div>
                 
@@ -240,19 +258,19 @@ One of the most significant barriers to mental health support is the persistent 
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
                       <SelectItem value="published">Published</SelectItem>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
-                {formData.status === "scheduled" && (
+                {formData.status === "published" && (
                   <div>
-                    <Label htmlFor="publishedAt">Publish Date</Label>
+                    <Label htmlFor="published_at">Publish Date</Label>
                     <Input
-                      id="publishedAt"
-                      type="datetime-local"
-                      value={formData.publishedAt}
-                      onChange={(e) => handleInputChange("publishedAt", e.target.value)}
+                      id="published_at"
+                      type="date"
+                      value={formData.published_at}
+                      onChange={(e) => handleInputChange("published_at", e.target.value)}
                       className="mt-1"
                     />
                   </div>
@@ -266,21 +284,6 @@ One of the most significant barriers to mental health support is the persistent 
                 <CardTitle className="font-heading text-lg">Categorization</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <div>
                   <Label htmlFor="tags">Tags</Label>
@@ -305,20 +308,20 @@ One of the most significant barriers to mental health support is the persistent 
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="coverImage">Image URL</Label>
+                  <Label htmlFor="featured_image">Image URL</Label>
                   <Input
-                    id="coverImage"
-                    value={formData.coverImage}
-                    onChange={(e) => handleInputChange("coverImage", e.target.value)}
+                    id="featured_image"
+                    value={formData.featured_image}
+                    onChange={(e) => handleInputChange("featured_image", e.target.value)}
                     placeholder="https://example.com/image.jpg"
                     className="mt-1"
                   />
                 </div>
                 
-                {formData.coverImage && (
+                {formData.featured_image && (
                   <div className="aspect-video bg-muted rounded-lg overflow-hidden">
                     <img
-                      src={formData.coverImage}
+                      src={formData.featured_image}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                       onError={(e) => {
