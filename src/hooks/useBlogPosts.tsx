@@ -54,7 +54,8 @@ export const useBlogPosts = () => {
         excerpt: postData.excerpt,
         featured_image: postData.featured_image,
         status: postData.status || 'draft',
-        tags: postData.tags,
+        tags: postData.tags || [],
+        published_at: postData.published_at
       })
       .select()
       .single();

@@ -146,43 +146,73 @@ const WorkDetail = () => {
                 <CardTitle className="font-heading text-2xl">Content</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-lg max-w-none">
-                  <div 
-                    className="whitespace-pre-wrap leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: work.content.replace(/\n/g, '<br>') }}
-                  />
-                </div>
+                {work.content.startsWith('http') ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">
+                      This work is available as an external link.
+                    </p>
+                    <Button asChild>
+                      <a href={work.content} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open External Link
+                      </a>
+                    </Button>
+                  </div>
+                ) : work.content.includes('.pdf') ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">
+                      This work is available as a PDF document.
+                    </p>
+                    <Button asChild>
+                      <a href={work.content} target="_blank" rel="noopener noreferrer">
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="prose prose-lg max-w-none dark:prose-invert">
+                    <div 
+                      className="whitespace-pre-wrap leading-relaxed text-foreground"
+                      style={{ lineHeight: '1.8' }}
+                    >
+                      {work.content}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
 
-          {/* Action Buttons */}
-          <div className="mt-8 flex justify-center gap-4">
-            {work.content?.includes('http') && (
-              <Button asChild>
-                <a 
-                  href={work.content.match(/https?:\/\/[^\s]+/)?.[0]} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View External Link
-                </a>
-              </Button>
-            )}
-            {work.content?.includes('.pdf') && (
-              <Button variant="outline" asChild>
-                <a 
-                  href={work.content.match(/[^\s]+\.pdf/)?.[0]} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </a>
-              </Button>
-            )}
-          </div>
+          {/* Action Buttons - Only show if content contains links/PDFs */}
+          {work.content && (work.content.includes('http') || work.content.includes('.pdf')) && (
+            <div className="mt-8 flex justify-center gap-4">
+              {work.content.includes('http') && !work.content.includes('.pdf') && (
+                <Button asChild>
+                  <a 
+                    href={work.content.match(/https?:\/\/[^\s]+/)?.[0]} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View External Link
+                  </a>
+                </Button>
+              )}
+              {work.content.includes('.pdf') && (
+                <Button variant="outline" asChild>
+                  <a 
+                    href={work.content.match(/[^\s]+\.pdf/)?.[0]} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </a>
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
