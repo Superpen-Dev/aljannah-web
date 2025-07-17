@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -21,92 +22,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useLiteraryWorks } from "@/hooks/useLiteraryWorks";
+import { useToast } from "@/hooks/use-toast";
 
 const WorksManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [filterGenre, setFilterGenre] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
 
-  // Mock data - will be replaced with Supabase
-  const works = [
-    {
-      id: 1,
-      title: "Echoes of Resilience: A Collection",
-      type: "Poetry",
-      genre: "Contemporary Poetry",
-      format: "PDF",
-      description: "A compilation of poems exploring themes of strength, identity, and healing through personal narratives.",
-      topic: "Mental Health, Identity",
-      downloadCount: 45,
-      createdAt: "2024-01-10",
-      fileUrl: "/sample-poetry.pdf",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "Gender Dynamics in African Literature",
-      type: "Academic",
-      genre: "Literary Criticism",
-      format: "PDF",
-      description: "A comprehensive analysis of gender representation in contemporary West African literature.",
-      topic: "Gender Studies, African Literature",
-      downloadCount: 32,
-      createdAt: "2024-01-05",
-      fileUrl: "/academic-paper.pdf",
-      featured: false
-    },
-    {
-      id: 3,
-      title: "The Silent Voices",
-      type: "Fiction",
-      genre: "Short Story",
-      format: "PDF",
-      description: "A short story exploring mental health themes within African family dynamics.",
-      topic: "Mental Health, Family",
-      downloadCount: 28,
-      createdAt: "2023-12-20",
-      fileUrl: "/short-story.pdf",
-      featured: true
-    },
-    {
-      id: 4,
-      title: "Published Article: Marriage and Mental Health",
-      type: "Articles",
-      genre: "Academic Article",
-      format: "External Link",
-      description: "Published research on the intersection of marital relationships and psychological wellbeing.",
-      topic: "Marriage, Mental Health",
-      downloadCount: 0,
-      createdAt: "2023-12-15",
-      fileUrl: "https://example-journal.com/article-123",
-      featured: false
-    },
-    {
-      id: 5,
-      title: "Narrative Therapy Techniques",
-      type: "Academic",
-      genre: "Research Paper",
-      format: "PDF",
-      description: "Exploring the application of narrative therapy in social work practice.",
-      topic: "Therapy, Social Work",
-      downloadCount: 19,
-      createdAt: "2023-11-30",
-      fileUrl: "/research-paper.pdf",
-      featured: false
-    }
-  ];
+  const { works, loading, deleteWork } = useLiteraryWorks();
+  const { toast } = useToast();
 
   const types = ["all", "Fiction", "Poetry", "Academic", "Articles"];
-  const genres = ["all", "Contemporary Poetry", "Literary Criticism", "Short Story", "Academic Article", "Research Paper"];
+  const statuses = ["all", "published", "draft", "archived"];
 
   const filteredWorks = works.filter(work => {
     const matchesSearch = work.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         work.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         work.topic.toLowerCase().includes(searchTerm.toLowerCase());
+                         (work.description && work.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesType = filterType === "all" || work.type === filterType;
-    const matchesGenre = filterGenre === "all" || work.genre === filterGenre;
+    const matchesStatus = filterStatus === "all" || work.status === filterStatus;
     
-    return matchesSearch && matchesType && matchesGenre;
+    return matchesSearch && matchesType && matchesStatus;
   });
 
   const formatDate = (dateString: string) => {
@@ -127,15 +63,43 @@ const WorksManager = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
-    // TODO: Implement delete with Supabase
-    console.log("Deleting work:", id);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'published': return 'default';
+      case 'draft': return 'secondary';
+      case 'archived': return 'outline';
+      default: return 'secondary';
+    }
   };
 
-  const handleToggleFeatured = (id: number) => {
-    // TODO: Implement featured toggle with Supabase
-    console.log("Toggling featured status for work:", id);
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteWork(id);
+      toast({
+        title: "Work deleted",
+        description: "The literary work has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the work. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-muted-foreground">Loading works...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -183,14 +147,14 @@ const WorksManager = () => {
                 </SelectContent>
               </Select>
               
-              <Select value={filterGenre} onValueChange={setFilterGenre}>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="md:w-48">
-                  <SelectValue placeholder="Genre" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {genres.map((genre) => (
-                    <SelectItem key={genre} value={genre}>
-                      {genre === "all" ? "All Genres" : genre}
+                  {statuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status === "all" ? "All Status" : status.charAt(0).toUpperCase() + status.slice(1)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -207,10 +171,14 @@ const WorksManager = () => {
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Icon */}
                   <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                    {work.format === "PDF" ? (
-                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    {work.cover_image ? (
+                      <img
+                        src={work.cover_image}
+                        alt={work.title}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
                     ) : (
-                      <ExternalLink className="h-8 w-8 text-muted-foreground" />
+                      <BookOpen className="h-8 w-8 text-muted-foreground" />
                     )}
                   </div>
 
@@ -222,16 +190,12 @@ const WorksManager = () => {
                           <h3 className="font-heading text-lg font-semibold text-foreground leading-tight">
                             {work.title}
                           </h3>
-                          {work.featured && (
-                            <Badge variant="default" className="text-xs">Featured</Badge>
-                          )}
                         </div>
-                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
-                          {work.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Topic: {work.topic}
-                        </p>
+                        {work.description && (
+                          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
+                            {work.description}
+                          </p>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-2 mt-2 md:mt-0 md:ml-4">
@@ -242,28 +206,19 @@ const WorksManager = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => window.open(work.fileUrl, '_blank')}>
-                              {work.format === "PDF" ? (
-                                <>
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Download
-                                </>
-                              ) : (
-                                <>
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  View External
-                                </>
-                              )}
-                            </DropdownMenuItem>
+                            {work.status === 'published' && (
+                              <DropdownMenuItem asChild>
+                                <Link to={`/works/${work.id}`}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem asChild>
                               <Link to={`/admin/works/${work.id}/edit`}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit
                               </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleFeatured(work.id)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              {work.featured ? "Remove from Featured" : "Add to Featured"}
                             </DropdownMenuItem>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -300,18 +255,16 @@ const WorksManager = () => {
                       <Badge variant={getTypeColor(work.type)}>
                         {work.type}
                       </Badge>
-                      <Badge variant="outline">
-                        {work.genre}
+                      <Badge variant={getStatusColor(work.status)}>
+                        {work.status}
                       </Badge>
-                      <Badge variant="secondary">
-                        {work.format}
-                      </Badge>
-                      <div className="flex items-center text-muted-foreground">
-                        <Download className="h-3 w-3 mr-1" />
-                        {work.downloadCount} downloads
-                      </div>
+                      {work.tags && work.tags.length > 0 && (
+                        <Badge variant="outline">
+                          {work.tags[0]}
+                        </Badge>
+                      )}
                       <div className="text-muted-foreground">
-                        Added {formatDate(work.createdAt)}
+                        Added {formatDate(work.created_at)}
                       </div>
                     </div>
                   </div>
@@ -327,7 +280,7 @@ const WorksManager = () => {
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-heading text-xl font-semibold mb-2">No works found</h3>
               <p className="text-muted-foreground mb-6">
-                {searchTerm || filterType !== "all" || filterGenre !== "all"
+                {searchTerm || filterType !== "all" || filterStatus !== "all"
                   ? "Try adjusting your search or filters."
                   : "Get started by adding your first work."
                 }

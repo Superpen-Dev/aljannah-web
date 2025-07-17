@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -7,31 +8,39 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useContacts } from "@/hooks/useContacts";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    subject: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { createContact } = useContacts();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission - replace with actual form handler
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await createContact({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || null,
+        message: formData.message,
+      });
       
       toast({
         title: "Message sent successfully!",
         description: "Thank you for reaching out. I'll get back to you soon.",
       });
       
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
+      console.error('Contact form error:', error);
       toast({
         title: "Error sending message",
         description: "Please try again later or contact me directly via email.",
@@ -152,6 +161,20 @@ const Contact = () => {
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="your.email@example.com"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="subject" className="text-sm font-medium">
+                          Subject
+                        </label>
+                        <Input
+                          id="subject"
+                          name="subject"
+                          type="text"
+                          value={formData.subject}
+                          onChange={handleChange}
+                          placeholder="What is this about?"
                         />
                       </div>
 

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -20,79 +21,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { useToast } from "@/hooks/use-toast";
 
 const BlogManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
-
-  // Mock data - will be replaced with Supabase
-  const blogPosts = [
-    {
-      id: 1,
-      title: "The Power of Storytelling in Mental Health Advocacy",
-      category: "Articles",
-      status: "published",
-      publishedAt: "2024-01-15",
-      views: 142,
-      readTime: "5 min read",
-      excerpt: "Exploring how narrative therapy and personal stories can transform our understanding of mental wellness...",
-      coverImage: "https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=400&h=250&fit=crop"
-    },
-    {
-      id: 2,
-      title: "African Feminism Through Literary Lens",
-      category: "Literary Criticism",
-      status: "published",
-      publishedAt: "2024-01-10",
-      views: 89,
-      readTime: "8 min read",
-      excerpt: "A critical examination of how contemporary African literature challenges and redefines feminist discourse...",
-      coverImage: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Whispers of Home",
-      category: "Poetry",
-      status: "published",
-      publishedAt: "2024-01-05",
-      views: 76,
-      readTime: "2 min read",
-      excerpt: "A poem about diaspora, belonging, and the eternal search for home in foreign lands...",
-      coverImage: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop"
-    },
-    {
-      id: 4,
-      title: "Understanding Narrative Therapy",
-      category: "Articles",
-      status: "draft",
-      publishedAt: null,
-      views: 0,
-      readTime: "6 min read",
-      excerpt: "An in-depth look at narrative therapy techniques and their applications in mental health practice...",
-      coverImage: null
-    },
-    {
-      id: 5,
-      title: "Contemporary African Poetry Analysis",
-      category: "Literary Criticism",
-      status: "scheduled",
-      publishedAt: "2024-01-25",
-      views: 0,
-      readTime: "12 min read",
-      excerpt: "A comprehensive analysis of contemporary African poetry and its cultural significance...",
-      coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop"
-    }
-  ];
+  
+  const { posts, loading, deletePost } = useBlogPosts();
+  const { toast } = useToast();
 
   const categories = ["all", "Articles", "Poetry", "Literary Criticism"];
-  const statuses = ["all", "published", "draft", "scheduled"];
+  const statuses = ["all", "published", "draft", "archived"];
 
-  const filteredPosts = blogPosts.filter(post => {
+  const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+                         (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = filterStatus === "all" || post.status === filterStatus;
-    const matchesCategory = filterCategory === "all" || post.category === filterCategory;
+    const matchesCategory = filterCategory === "all" || (post.tags && post.tags.includes(filterCategory));
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -110,15 +57,46 @@ const BlogManager = () => {
     switch (status) {
       case 'published': return 'default';
       case 'draft': return 'secondary';
-      case 'scheduled': return 'outline';
+      case 'archived': return 'outline';
       default: return 'secondary';
     }
   };
 
-  const handleDelete = (id: number) => {
-    // TODO: Implement delete with Supabase
-    console.log("Deleting post:", id);
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePost(id);
+      toast({
+        title: "Post deleted",
+        description: "The blog post has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the post. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
+
+  const calculateReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.split(' ').length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min read`;
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-muted-foreground">Loading posts...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -190,15 +168,15 @@ const BlogManager = () => {
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Cover Image */}
                   <div className="w-full md:w-32 h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                    {post.coverImage ? (
+                    {post.featured_image ? (
                       <img
-                        src={post.coverImage}
+                        src={post.featured_image}
                         alt={post.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        No Image
+                        <FileText className="h-8 w-8" />
                       </div>
                     )}
                   </div>
@@ -210,9 +188,11 @@ const BlogManager = () => {
                         <h3 className="font-heading text-lg font-semibold text-foreground mb-2 leading-tight">
                           {post.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
-                          {post.excerpt}
-                        </p>
+                        {post.excerpt && (
+                          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+                            {post.excerpt}
+                          </p>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-2 mt-2 md:mt-0 md:ml-4">
@@ -223,12 +203,14 @@ const BlogManager = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/blog/${post.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View
-                              </Link>
-                            </DropdownMenuItem>
+                            {post.status === 'published' && (
+                              <DropdownMenuItem asChild>
+                                <Link to={`/blog/${post.slug}`}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem asChild>
                               <Link to={`/admin/blog/${post.id}/edit`}>
                                 <Edit className="h-4 w-4 mr-2" />
@@ -270,20 +252,18 @@ const BlogManager = () => {
                       <Badge variant={getStatusColor(post.status)}>
                         {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                       </Badge>
-                      <Badge variant="outline">
-                        {post.category}
-                      </Badge>
+                      {post.tags && post.tags.length > 0 && (
+                        <Badge variant="outline">
+                          {post.tags[0]}
+                        </Badge>
+                      )}
                       <div className="flex items-center text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(post.publishedAt)}
+                        {formatDate(post.published_at || post.created_at)}
                       </div>
                       <div className="flex items-center text-muted-foreground">
                         <Clock className="h-3 w-3 mr-1" />
-                        {post.readTime}
-                      </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Eye className="h-3 w-3 mr-1" />
-                        {post.views} views
+                        {calculateReadTime(post.content)}
                       </div>
                     </div>
                   </div>
