@@ -10,13 +10,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState("sani@adminaljannah.com");
-  const [password, setPassword] = useState("iamfirdaus");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   
-  const { signIn, user } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,12 +35,31 @@ const AdminLogin = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        setError(error.message);
-        toast({
-          title: "Login Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        // If user doesn't exist and it's the admin email, create the user
+        if (error.message.includes("Invalid login credentials") && email === "sani@adminaljannah.com") {
+          const { error: signUpError } = await signUp(email, password);
+          if (signUpError) {
+            setError(signUpError.message);
+            toast({
+              title: "Account Creation Failed",
+              description: signUpError.message,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Admin Account Created",
+              description: "Admin account created successfully. Please sign in now.",
+              variant: "default",
+            });
+          }
+        } else {
+          setError(error.message);
+          toast({
+            title: "Login Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       }
     } catch (err: any) {
       setError("An error occurred. Please try again.");
@@ -148,9 +167,6 @@ const AdminLogin = () => {
           </CardContent>
         </Card>
         
-        <div className="mt-6 text-center text-xs text-muted-foreground">
-          <p>Demo credentials: sani@adminaljannah.com / iamfirdaus</p>
-        </div>
       </div>
     </div>
   );
