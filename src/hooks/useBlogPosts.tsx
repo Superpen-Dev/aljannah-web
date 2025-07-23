@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -26,14 +27,24 @@ export const useBlogPosts = () => {
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('Fetching blog posts...');
+      
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        throw error;
+      }
+      
+      console.log('Fetched posts:', data);
       setPosts((data || []) as BlogPost[]);
     } catch (err: any) {
+      console.error('Error in fetchPosts:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -41,51 +52,100 @@ export const useBlogPosts = () => {
   }, []);
 
   const createPost = async (postData: Partial<BlogPost>) => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      console.error('User not authenticated');
+      throw new Error('User not authenticated');
+    }
 
-    const slug = generateSlug(postData.title || '');
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .insert({
+    try {
+      console.log('Creating post with data:', postData);
+      
+      const slug = generateSlug(postData.title || '');
+      const insertData = {
         title: postData.title || '',
         content: postData.content || '',
         slug,
         author_id: user.id,
-        excerpt: postData.excerpt,
-        featured_image: postData.featured_image,
+        excerpt: postData.excerpt || null,
+        featured_image: postData.featured_image || null,
         status: postData.status || 'draft',
         tags: postData.tags || [],
-        published_at: postData.published_at
-      })
-      .select()
-      .single();
+        published_at: postData.published_at || null
+      };
+      
+      console.log('Insert data:', insertData);
+      
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert(insertData)
+        .select()
+        .single();
 
-    if (error) throw error;
-    await fetchPosts();
-    return data;
+      if (error) {
+        console.error('Error creating post:', error);
+        throw error;
+      }
+      
+      console.log('Created post:', data);
+      
+      // Refetch posts to update the list
+      await fetchPosts();
+      return data;
+    } catch (error) {
+      console.error('Error in createPost:', error);
+      throw error;
+    }
   };
 
   const updatePost = async (id: string, postData: Partial<BlogPost>) => {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .update(postData)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      console.log('Updating post:', id, postData);
+      
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .update(postData)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    await fetchPosts();
-    return data;
+      if (error) {
+        console.error('Error updating post:', error);
+        throw error;
+      }
+      
+      console.log('Updated post:', data);
+      
+      // Refetch posts to update the list
+      await fetchPosts();
+      return data;
+    } catch (error) {
+      console.error('Error in updatePost:', error);
+      throw error;
+    }
   };
 
   const deletePost = async (id: string) => {
-    const { error } = await supabase
-      .from('blog_posts')
-      .delete()
-      .eq('id', id);
+    try {
+      console.log('Deleting post:', id);
+      
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
-    await fetchPosts();
+      if (error) {
+        console.error('Error deleting post:', error);
+        throw error;
+      }
+      
+      console.log('Deleted post:', id);
+      
+      // Refetch posts to update the list
+      await fetchPosts();
+    } catch (error) {
+      console.error('Error in deletePost:', error);
+      throw error;
+    }
   };
 
   const generateSlug = (title: string) => {
@@ -93,12 +153,13 @@ export const useBlogPosts = () => {
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, '')
       .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .trim();
   };
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   return {
     posts,
@@ -119,15 +180,25 @@ export const usePublishedPosts = () => {
   const fetchPublishedPosts = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('Fetching published posts...');
+      
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching published posts:', error);
+        throw error;
+      }
+      
+      console.log('Fetched published posts:', data);
       setPosts((data || []) as BlogPost[]);
     } catch (err: any) {
+      console.error('Error in fetchPublishedPosts:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -136,7 +207,7 @@ export const usePublishedPosts = () => {
 
   useEffect(() => {
     fetchPublishedPosts();
-  }, []);
+  }, [fetchPublishedPosts]);
 
   return { posts, loading, error, refetch: fetchPublishedPosts };
 };

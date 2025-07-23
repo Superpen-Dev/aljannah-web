@@ -84,37 +84,49 @@ const BlogEditor = () => {
     setSaving(true);
     
     try {
+      console.log('Saving post with status:', status);
+      console.log('Form data:', formData);
+      
       const postData = {
-        title: formData.title,
-        content: formData.content,
-        excerpt: formData.excerpt,
-        featured_image: formData.featured_image,
+        title: formData.title.trim(),
+        content: formData.content || "",
+        excerpt: formData.excerpt.trim() || null,
+        featured_image: formData.featured_image || null,
         status: status as "draft" | "published" | "archived",
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        published_at: status === "published" ? (formData.published_at ? new Date(formData.published_at).toISOString() : new Date().toISOString()) : null
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+        published_at: status === "published" ? 
+          (formData.published_at ? new Date(formData.published_at).toISOString() : new Date().toISOString()) : 
+          null
       };
       
+      console.log('Processed post data:', postData);
+      
+      let result;
       if (isNew) {
-        await createPost(postData);
+        result = await createPost(postData);
+        console.log('Created post result:', result);
         toast({
           title: "Success",
           description: "Post created successfully"
         });
       } else if (id) {
-        await updatePost(id, postData);
+        result = await updatePost(id, postData);
+        console.log('Updated post result:', result);
         toast({
           title: "Success", 
           description: "Post updated successfully"
         });
       }
+      
+      // Navigate back to blog manager
       navigate("/admin/blog");
     } catch (error: any) {
+      console.error("Error saving post:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to save post",
         variant: "destructive"
       });
-      console.error("Error saving post:", error);
     } finally {
       setSaving(false);
     }
@@ -123,6 +135,12 @@ const BlogEditor = () => {
   const handlePreview = () => {
     if (formData.slug) {
       window.open(`/blog/${formData.slug}`, '_blank');
+    } else {
+      toast({
+        title: "Cannot Preview",
+        description: "Please add a title to generate a preview URL",
+        variant: "destructive"
+      });
     }
   };
 
@@ -159,7 +177,7 @@ const BlogEditor = () => {
               onClick={() => handleSave("draft")}
               disabled={saving}
             >
-              Save Draft
+              {saving ? "Saving..." : "Save Draft"}
             </Button>
             <Button
               onClick={() => handleSave("published")}
@@ -181,13 +199,14 @@ const BlogEditor = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     placeholder="Enter post title..."
                     className="mt-1"
+                    required
                   />
                 </div>
                 
