@@ -1,15 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUpload } from "@/components/ImageUpload";
 import { 
   Save, 
   Eye, 
   ArrowLeft, 
-  Image, 
   Calendar,
-  Clock,
   Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 const BlogEditor = () => {
   const { id } = useParams();
@@ -42,7 +40,7 @@ const BlogEditor = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!isNew && posts.length > 0) {
+    if (!isNew && posts.length > 0 && id) {
       const post = posts.find(p => p.id === id);
       if (post) {
         setFormData({
@@ -102,15 +100,14 @@ const BlogEditor = () => {
           title: "Success",
           description: "Post created successfully"
         });
-        navigate("/admin/blog");
-      } else {
-        await updatePost(id!, postData);
+      } else if (id) {
+        await updatePost(id, postData);
         toast({
           title: "Success", 
           description: "Post updated successfully"
         });
-        navigate("/admin/blog");
       }
+      navigate("/admin/blog");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -124,8 +121,9 @@ const BlogEditor = () => {
   };
 
   const handlePreview = () => {
-    // TODO: Implement preview functionality
-    window.open(`/blog/${formData.slug}`, '_blank');
+    if (formData.slug) {
+      window.open(`/blog/${formData.slug}`, '_blank');
+    }
   };
 
   return (
@@ -284,7 +282,6 @@ const BlogEditor = () => {
                 <CardTitle className="font-heading text-lg">Categorization</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                
                 <div>
                   <Label htmlFor="tags">Tags</Label>
                   <Input
@@ -306,35 +303,12 @@ const BlogEditor = () => {
               <CardHeader>
                 <CardTitle className="font-heading text-lg">Featured Image</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="featured_image">Image URL</Label>
-                  <Input
-                    id="featured_image"
-                    value={formData.featured_image}
-                    onChange={(e) => handleInputChange("featured_image", e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="mt-1"
-                  />
-                </div>
-                
-                {formData.featured_image && (
-                  <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                    <img
-                      src={formData.featured_image}
-                      alt="Cover preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
-                
-                <Button variant="outline" size="sm" className="w-full">
-                  <Image className="h-4 w-4 mr-2" />
-                  Upload Image
-                </Button>
+              <CardContent>
+                <ImageUpload
+                  onImageUpload={(imageUrl) => handleInputChange("featured_image", imageUrl)}
+                  currentImage={formData.featured_image}
+                  label="Featured Image"
+                />
               </CardContent>
             </Card>
           </div>
