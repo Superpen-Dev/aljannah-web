@@ -74,10 +74,11 @@ const WorkDetail = () => {
 
     // Disable text selection
     const disableSelection = () => {
-      document.body.style.userSelect = 'none';
-      document.body.style.webkitUserSelect = 'none';
-      document.body.style.mozUserSelect = 'none';
-      document.body.style.msUserSelect = 'none';
+      const bodyStyle = document.body.style as any;
+      bodyStyle.userSelect = 'none';
+      bodyStyle.webkitUserSelect = 'none';
+      bodyStyle.MozUserSelect = 'none';
+      bodyStyle.msUserSelect = 'none';
     };
 
     // Disable drag and drop
@@ -97,10 +98,11 @@ const WorkDetail = () => {
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('dragstart', handleDragStart);
-      document.body.style.userSelect = '';
-      document.body.style.webkitUserSelect = '';
-      document.body.style.mozUserSelect = '';
-      document.body.style.msUserSelect = '';
+      const bodyStyle = document.body.style as any;
+      bodyStyle.userSelect = '';
+      bodyStyle.webkitUserSelect = '';
+      bodyStyle.MozUserSelect = '';
+      bodyStyle.msUserSelect = '';
     };
   }, []);
 
@@ -241,10 +243,10 @@ const WorkDetail = () => {
                       style={{ 
                         lineHeight: '1.8',
                         userSelect: 'none',
-                        webkitUserSelect: 'none',
-                        mozUserSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
                         msUserSelect: 'none'
-                      }}
+                      } as React.CSSProperties}
                       onContextMenu={(e) => e.preventDefault()}
                       onDragStart={(e) => e.preventDefault()}
                     >
