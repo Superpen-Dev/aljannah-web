@@ -107,24 +107,27 @@ const BlogEditor = () => {
         console.log('Created post result:', result);
         toast({
           title: "Success",
-          description: "Post created successfully"
+          description: "Blog post created successfully!"
         });
       } else if (id) {
         result = await updatePost(id, postData);
         console.log('Updated post result:', result);
         toast({
           title: "Success", 
-          description: "Post updated successfully"
+          description: "Blog post updated successfully!"
         });
       }
       
-      // Navigate back to blog manager
-      navigate("/admin/blog");
+      // Small delay to ensure the toast is visible before navigation
+      setTimeout(() => {
+        navigate("/admin/blog");
+      }, 1000);
+      
     } catch (error: any) {
       console.error("Error saving post:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to save post",
+        description: error.message || "Failed to save blog post. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -159,7 +162,7 @@ const BlogEditor = () => {
             </Button>
             <div>
               <h1 className="font-heading text-3xl font-bold text-foreground">
-                {isNew ? "New Post" : "Edit Post"}
+                {isNew ? "New Blog Post" : "Edit Blog Post"}
               </h1>
               <p className="text-muted-foreground mt-1">
                 {isNew ? "Create a new blog post" : "Edit your blog post"}

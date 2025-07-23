@@ -30,6 +30,7 @@ export const useBlogPosts = () => {
       setError(null);
       
       console.log('Fetching blog posts...');
+      console.log('Current user:', user?.id);
       
       const { data, error } = await supabase
         .from('blog_posts')
@@ -49,7 +50,7 @@ export const useBlogPosts = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   const createPost = async (postData: Partial<BlogPost>) => {
     if (!user) {
@@ -59,6 +60,7 @@ export const useBlogPosts = () => {
 
     try {
       console.log('Creating post with data:', postData);
+      console.log('User ID:', user.id);
       
       const slug = generateSlug(postData.title || '');
       const insertData = {
@@ -70,7 +72,7 @@ export const useBlogPosts = () => {
         featured_image: postData.featured_image || null,
         status: postData.status || 'draft',
         tags: postData.tags || [],
-        published_at: postData.published_at || null
+        published_at: postData.status === 'published' ? (postData.published_at || new Date().toISOString()) : null
       };
       
       console.log('Insert data:', insertData);
@@ -88,8 +90,9 @@ export const useBlogPosts = () => {
       
       console.log('Created post:', data);
       
-      // Refetch posts to update the list
-      await fetchPosts();
+      // Add the new post to the current list instead of refetching
+      setPosts(currentPosts => [data as BlogPost, ...currentPosts]);
+      
       return data;
     } catch (error) {
       console.error('Error in createPost:', error);
@@ -101,9 +104,14 @@ export const useBlogPosts = () => {
     try {
       console.log('Updating post:', id, postData);
       
+      const updateData = {
+        ...postData,
+        published_at: postData.status === 'published' ? (postData.published_at || new Date().toISOString()) : postData.published_at
+      };
+      
       const { data, error } = await supabase
         .from('blog_posts')
-        .update(postData)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -115,8 +123,13 @@ export const useBlogPosts = () => {
       
       console.log('Updated post:', data);
       
-      // Refetch posts to update the list
-      await fetchPosts();
+      // Update the post in the current list
+      setPosts(currentPosts => 
+        currentPosts.map(post => 
+          post.id === id ? { ...post, ...data } as BlogPost : post
+        )
+      );
+      
       return data;
     } catch (error) {
       console.error('Error in updatePost:', error);
@@ -140,8 +153,8 @@ export const useBlogPosts = () => {
       
       console.log('Deleted post:', id);
       
-      // Refetch posts to update the list
-      await fetchPosts();
+      // Remove the post from the current list
+      setPosts(currentPosts => currentPosts.filter(post => post.id !== id));
     } catch (error) {
       console.error('Error in deletePost:', error);
       throw error;
@@ -158,8 +171,10 @@ export const useBlogPosts = () => {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+    if (user) {
+      fetchPosts();
+    }
+  }, [user, fetchPosts]);
 
   return {
     posts,
