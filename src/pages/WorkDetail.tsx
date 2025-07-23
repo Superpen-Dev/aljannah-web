@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Download, ExternalLink, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LiteraryWork {
@@ -48,6 +49,60 @@ const WorkDetail = () => {
 
     fetchWork();
   }, [slug]);
+
+  // Content protection effects
+  useEffect(() => {
+    // Disable right-click context menu
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Disable keyboard shortcuts for copying, printing, and screenshots
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+Shift+I, F12, Print Screen
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'a' || e.key === 's' || e.key === 'p')) ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        e.key === 'F12' ||
+        e.key === 'PrintScreen'
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Disable text selection
+    const disableSelection = () => {
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+      document.body.style.mozUserSelect = 'none';
+      document.body.style.msUserSelect = 'none';
+    };
+
+    // Disable drag and drop
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Add event listeners
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('dragstart', handleDragStart);
+    disableSelection();
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('dragstart', handleDragStart);
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+      document.body.style.mozUserSelect = '';
+      document.body.style.msUserSelect = '';
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -103,6 +158,8 @@ const WorkDetail = () => {
                       src={work.cover_image}
                       alt={work.title}
                       className="w-full h-64 md:h-80 object-cover rounded-lg"
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
                     />
                   </div>
                 )}
@@ -110,6 +167,13 @@ const WorkDetail = () => {
                   <CardTitle className="font-heading text-3xl mb-4">
                     {work.title}
                   </CardTitle>
+                  
+                  {/* Author Name */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <User className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-foreground">AlJannah Adedamola Sanni</span>
+                  </div>
+                  
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1" />
@@ -173,8 +237,16 @@ const WorkDetail = () => {
                 ) : (
                   <div className="prose prose-lg max-w-none dark:prose-invert">
                     <div 
-                      className="whitespace-pre-wrap leading-relaxed text-foreground"
-                      style={{ lineHeight: '1.8' }}
+                      className="whitespace-pre-wrap leading-relaxed text-foreground select-none"
+                      style={{ 
+                        lineHeight: '1.8',
+                        userSelect: 'none',
+                        webkitUserSelect: 'none',
+                        mozUserSelect: 'none',
+                        msUserSelect: 'none'
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
+                      onDragStart={(e) => e.preventDefault()}
                     >
                       {work.content}
                     </div>

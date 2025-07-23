@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Calendar, ArrowRight, Clock, BookOpen } from "lucide-react";
+import { Calendar, ArrowRight, Clock, BookOpen, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +55,8 @@ const LatestBlogPosts = () => {
                       src={post.featured_image}
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
                     />
                   </div>
                 )}
@@ -74,6 +77,12 @@ const LatestBlogPosts = () => {
                   <CardTitle className="font-heading text-lg leading-tight group-hover:text-primary transition-colors">
                     {post.title}
                   </CardTitle>
+                  
+                  {/* Author Name */}
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <User className="h-3 w-3" />
+                    <span>AlJannah Adedamola Sanni</span>
+                  </div>
                   
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3 mr-1" />
