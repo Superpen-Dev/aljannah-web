@@ -1,15 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUpload } from "@/components/ImageUpload";
 import { 
   Save, 
   Eye, 
   ArrowLeft, 
-  Image, 
   Calendar,
-  Clock,
   Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 const BlogEditor = () => {
   const { id } = useParams();
@@ -42,7 +40,7 @@ const BlogEditor = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!isNew && posts.length > 0) {
+    if (!isNew && posts.length > 0 && id) {
       const post = posts.find(p => p.id === id);
       if (post) {
         setFormData({
@@ -86,46 +84,67 @@ const BlogEditor = () => {
     setSaving(true);
     
     try {
+      console.log('Saving post with status:', status);
+      console.log('Form data:', formData);
+      
       const postData = {
-        title: formData.title,
-        content: formData.content,
-        excerpt: formData.excerpt,
-        featured_image: formData.featured_image,
+        title: formData.title.trim(),
+        content: formData.content || "",
+        excerpt: formData.excerpt.trim() || null,
+        featured_image: formData.featured_image || null,
         status: status as "draft" | "published" | "archived",
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        published_at: status === "published" ? (formData.published_at ? new Date(formData.published_at).toISOString() : new Date().toISOString()) : null
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+        published_at: status === "published" ? 
+          (formData.published_at ? new Date(formData.published_at).toISOString() : new Date().toISOString()) : 
+          null
       };
       
+      console.log('Processed post data:', postData);
+      
+      let result;
       if (isNew) {
-        await createPost(postData);
+        result = await createPost(postData);
+        console.log('Created post result:', result);
         toast({
           title: "Success",
-          description: "Post created successfully"
+          description: "Blog post created successfully!"
         });
-        navigate("/admin/blog");
-      } else {
-        await updatePost(id!, postData);
+      } else if (id) {
+        result = await updatePost(id, postData);
+        console.log('Updated post result:', result);
         toast({
           title: "Success", 
-          description: "Post updated successfully"
+          description: "Blog post updated successfully!"
         });
-        navigate("/admin/blog");
       }
+      
+      // Small delay to ensure the toast is visible before navigation
+      setTimeout(() => {
+        navigate("/admin/blog");
+      }, 1000);
+      
     } catch (error: any) {
+      console.error("Error saving post:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to save blog post. Please try again.",
         variant: "destructive"
       });
-      console.error("Error saving post:", error);
     } finally {
       setSaving(false);
     }
   };
 
   const handlePreview = () => {
-    // TODO: Implement preview functionality
-    window.open(`/blog/${formData.slug}`, '_blank');
+    if (formData.slug) {
+      window.open(`/blog/${formData.slug}`, '_blank');
+    } else {
+      toast({
+        title: "Cannot Preview",
+        description: "Please add a title to generate a preview URL",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -143,7 +162,7 @@ const BlogEditor = () => {
             </Button>
             <div>
               <h1 className="font-heading text-3xl font-bold text-foreground">
-                {isNew ? "New Post" : "Edit Post"}
+                {isNew ? "New Blog Post" : "Edit Blog Post"}
               </h1>
               <p className="text-muted-foreground mt-1">
                 {isNew ? "Create a new blog post" : "Edit your blog post"}
@@ -161,7 +180,7 @@ const BlogEditor = () => {
               onClick={() => handleSave("draft")}
               disabled={saving}
             >
-              Save Draft
+              {saving ? "Saving..." : "Save Draft"}
             </Button>
             <Button
               onClick={() => handleSave("published")}
@@ -183,13 +202,14 @@ const BlogEditor = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     placeholder="Enter post title..."
                     className="mt-1"
+                    required
                   />
                 </div>
                 
@@ -284,7 +304,6 @@ const BlogEditor = () => {
                 <CardTitle className="font-heading text-lg">Categorization</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                
                 <div>
                   <Label htmlFor="tags">Tags</Label>
                   <Input
@@ -306,35 +325,12 @@ const BlogEditor = () => {
               <CardHeader>
                 <CardTitle className="font-heading text-lg">Featured Image</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="featured_image">Image URL</Label>
-                  <Input
-                    id="featured_image"
-                    value={formData.featured_image}
-                    onChange={(e) => handleInputChange("featured_image", e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="mt-1"
-                  />
-                </div>
-                
-                {formData.featured_image && (
-                  <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                    <img
-                      src={formData.featured_image}
-                      alt="Cover preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
-                
-                <Button variant="outline" size="sm" className="w-full">
-                  <Image className="h-4 w-4 mr-2" />
-                  Upload Image
-                </Button>
+              <CardContent>
+                <ImageUpload
+                  onImageUpload={(imageUrl) => handleInputChange("featured_image", imageUrl)}
+                  currentImage={formData.featured_image}
+                  label="Featured Image"
+                />
               </CardContent>
             </Card>
           </div>

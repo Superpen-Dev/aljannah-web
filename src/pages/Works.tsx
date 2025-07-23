@@ -1,7 +1,8 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Search, Filter, Download, ExternalLink, BookOpen, FileText } from "lucide-react";
+import { Search, Filter, Download, ExternalLink, BookOpen, FileText, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,62 @@ const Works = () => {
     });
   };
 
+  // Content protection effects
+  useEffect(() => {
+    // Disable right-click context menu
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Disable keyboard shortcuts for copying, printing, and screenshots
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+Shift+I, F12, Print Screen
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'a' || e.key === 's' || e.key === 'p')) ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        e.key === 'F12' ||
+        e.key === 'PrintScreen'
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Disable text selection
+    const disableSelection = () => {
+      const bodyStyle = document.body.style as any;
+      bodyStyle.userSelect = 'none';
+      bodyStyle.webkitUserSelect = 'none';
+      bodyStyle.MozUserSelect = 'none';
+      bodyStyle.msUserSelect = 'none';
+    };
+
+    // Disable drag and drop
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Add event listeners
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('dragstart', handleDragStart);
+    disableSelection();
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('dragstart', handleDragStart);
+      const bodyStyle = document.body.style as any;
+      bodyStyle.userSelect = '';
+      bodyStyle.webkitUserSelect = '';
+      bodyStyle.MozUserSelect = '';
+      bodyStyle.msUserSelect = '';
+    };
+  }, []);
+
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -54,6 +111,12 @@ const Works = () => {
                   and literary criticism. Each piece reflects my journey as a writer exploring the 
                   depths of human experience and social understanding.
                 </p>
+                
+                {/* Author Credit */}
+                <div className="flex items-center justify-center gap-2 text-lg font-medium text-primary">
+                  <User className="h-5 w-5" />
+                  <span>AlJannah Adedamola Sanni</span>
+                </div>
               </div>
               
               {/* Stats */}
@@ -138,6 +201,12 @@ const Works = () => {
                             {work.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </Badge>
                           <CardTitle className="font-heading text-xl">{work.title}</CardTitle>
+                          
+                          {/* Author Name */}
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <User className="h-3 w-3" />
+                            <span>AlJannah Adedamola Sanni</span>
+                          </div>
                         </div>
                         <div className="text-primary">
                           {work.content && work.content.startsWith('http') ? 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -23,7 +23,7 @@ export const useLiteraryWorks = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const fetchWorks = async () => {
+  const fetchWorks = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -38,7 +38,7 @@ export const useLiteraryWorks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const createWork = async (workData: Partial<LiteraryWork>) => {
     if (!user) throw new Error('User not authenticated');
@@ -107,7 +107,7 @@ export const usePublishedWorks = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPublishedWorks = async () => {
+  const fetchPublishedWorks = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -123,7 +123,7 @@ export const usePublishedWorks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPublishedWorks();

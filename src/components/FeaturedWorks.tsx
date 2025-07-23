@@ -1,5 +1,6 @@
+
 import React from "react";
-import { ExternalLink, Download, BookOpen, FileText } from "lucide-react";
+import { ExternalLink, Download, BookOpen, FileText, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,12 +8,7 @@ import { Link } from "react-router-dom";
 import { usePublishedWorks } from "@/hooks/useLiteraryWorks";
 
 const FeaturedWorks = () => {
-  const { works, loading, refetch } = usePublishedWorks();
-  
-  // Refetch when component mounts to ensure fresh data
-  React.useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { works, loading } = usePublishedWorks();
   
   // Get the latest 3 published works
   const featuredWorks = works.slice(0, 3);
@@ -44,6 +40,12 @@ const FeaturedWorks = () => {
                         {work.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </Badge>
                       <CardTitle className="font-heading text-xl">{work.title}</CardTitle>
+                      
+                      {/* Author Name */}
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <User className="h-3 w-3" />
+                        <span>AlJannah Adedamola Sanni</span>
+                      </div>
                     </div>
                     <div className="text-primary">
                       {work.content && work.content.startsWith('http') ? 
