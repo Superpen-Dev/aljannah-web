@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -23,7 +23,7 @@ export const useBlogPosts = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -38,7 +38,7 @@ export const useBlogPosts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const createPost = async (postData: Partial<BlogPost>) => {
     if (!user) throw new Error('User not authenticated');
@@ -116,7 +116,7 @@ export const usePublishedPosts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPublishedPosts = async () => {
+  const fetchPublishedPosts = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -132,7 +132,7 @@ export const usePublishedPosts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPublishedPosts();

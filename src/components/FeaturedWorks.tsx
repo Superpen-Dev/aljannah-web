@@ -7,12 +7,7 @@ import { Link } from "react-router-dom";
 import { usePublishedWorks } from "@/hooks/useLiteraryWorks";
 
 const FeaturedWorks = () => {
-  const { works, loading, refetch } = usePublishedWorks();
-  
-  // Refetch when component mounts to ensure fresh data
-  React.useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { works, loading } = usePublishedWorks();
   
   // Get the latest 3 published works
   const featuredWorks = works.slice(0, 3);

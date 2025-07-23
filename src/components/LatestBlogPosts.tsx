@@ -7,12 +7,7 @@ import { Link } from "react-router-dom";
 import { usePublishedPosts } from "@/hooks/useBlogPosts";
 
 const LatestBlogPosts = () => {
-  const { posts, loading, refetch } = usePublishedPosts();
-  
-  // Refetch when component mounts to ensure fresh data
-  React.useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { posts, loading } = usePublishedPosts();
   
   // Get the latest 3 published posts
   const latestPosts = posts.slice(0, 3);
